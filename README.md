@@ -1,5 +1,14 @@
 # LinkedIn Post Agent
 
+![Python](https://img.shields.io/badge/Python-3.11+-blue?style=for-the-badge&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+![Stars](https://img.shields.io/github/stars/10abdulmoid/Postagent?style=for-the-badge&color=gold)
+![Forks](https://img.shields.io/github/forks/10abdulmoid/Postagent?style=for-the-badge&color=orange)
+![Issues](https://img.shields.io/github/issues/10abdulmoid/Postagent?style=for-the-badge&color=red)
+![PRs Welcome](https://img.shields.io/badge/PRs-Welcome-brightgreen?style=for-the-badge)
+
 A human-in-the-loop autonomous agent that collects tech articles from RSS feeds, generates LinkedIn-ready post drafts, and posts to LinkedIn via the official API **only after manual approval**.
 
 <img width="960" height="540" alt="Untitled design (11)" src="https://github.com/user-attachments/assets/e4e62ad5-0f96-4d0f-9403-2b7ff9a0dae1" />
