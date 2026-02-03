@@ -2,8 +2,9 @@
 
 A human-in-the-loop autonomous agent that collects tech articles from RSS feeds, generates LinkedIn-ready post drafts, and posts to LinkedIn via the official API **only after manual approval**.
 
-## Features<img width="960" height="540" alt="Untitled design (11)" src="https://github.com/user-attachments/assets/e4e62ad5-0f96-4d0f-9403-2b7ff9a0dae1" />
+<img width="960" height="540" alt="Untitled design (11)" src="https://github.com/user-attachments/assets/e4e62ad5-0f96-4d0f-9403-2b7ff9a0dae1" />
 
+## Features
 
 - 🔄 **Automated RSS Feed Monitoring**: Polls configured feeds on a schedule
 - 🤖 **AI-Powered Draft Generation**: Creates engaging LinkedIn posts from articles
