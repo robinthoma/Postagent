@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}Drafts - LinkedIn Post Agent{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">> <span>{% if filter_status %}{{ filter_status }}{% else %}All{% endif %} Drafts</span></h1>
+    <div style="display: flex; gap: 8px;">
+        <a href="/drafts" class="btn btn-sm {% if not filter_status %}btn-primary{% endif %}">All</a>
+        <a href="/drafts?status=PENDING" class="btn btn-sm {% if filter_status == 'PENDING' %}btn-warning{% endif %}">Pending</a>
+        <a href="/drafts?status=POSTED" class="btn btn-sm {% if filter_status == 'POSTED' %}btn-success{% endif %}">Posted</a>
+        <a href="/drafts?status=FAILED" class="btn btn-sm {% if filter_status == 'FAILED' %}btn-danger{% endif %}">Failed</a>
+    </div>
+</div>
+
+{% if not drafts %}
+    <div class="alert alert-info">
+        No drafts found. 
+        {% if filter_status %}
+            <a href="/drafts" style="color: var(--accent-cyan);">View all drafts</a> or 
+        {% endif %}
+        <a href="/" style="color: var(--accent-cyan);">go back to home</a> to poll feeds.
+    </div>
+{% else %}
+    {% for draft in drafts %}
+    <div class="draft-card">
+        <div class="draft-header">
+            <div style="flex: 1;">
+                <div class="draft-title">{{ draft.title }}</div>
+                <div class="draft-meta">
+                    <a href="{{ draft.url }}" target="_blank">{{ draft.url }}</a>
+                    <span style="margin-left: 10px;">· Draft #{{ draft.id }}</span>
+                    {% if draft.image_url %}
+                        <span class="image-badge" title="Has Unsplash image">📷</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div>
+                {% if draft.status == 'PENDING' %}
+                    <span class="status status-pending">{{ draft.status }}</span>
+                {% elif draft.status == 'POSTED' %}
+                    <span class="status status-success">{{ draft.status }}</span>
+                {% elif draft.status == 'FAILED' %}
+                    <span class="status status-failed">{{ draft.status }}</span>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if draft.image_thumb_url %}
+        <div class="draft-image-preview">
+            <img src="{{ draft.image_thumb_url }}" alt="Post image preview" loading="lazy">
+            {% if draft.image_attribution %}
+            <span class="image-attribution">{{ draft.image_attribution }}</span>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <div class="draft-content">{{ draft.post_text }}</div>
+
+        <div class="draft-actions">
+            <div style="flex: 1; font-size: 12px; color: var(--text-muted);">
+                Created: {{ draft.created_at | string }}
+                {% if draft.posted_at %}
+                    · Posted: {{ draft.posted_at | string }}
+                {% endif %}
+            </div>
+            <div>
+                {% if draft.status == 'PENDING' %}
+                    <form method="post" action="/drafts/{{ draft.id }}/approve" style="display: inline;">
+                        <input type="hidden" name="csrf_token" value="protected">
+                        <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Post this to LinkedIn?{% if draft.image_url %} (includes image){% endif %}');">
+                            ✓ Approve & Post{% if draft.image_url %} 📷{% endif %}
+                        </button>
+                    </form>
+                {% elif draft.status == 'FAILED' and draft.linkedin_response %}
+                    <details>
+                        <summary style="cursor: pointer; color: var(--accent-red); font-size: 12px;">View Error</summary>
+                        <pre style="margin-top: 10px; padding: 10px; background: var(--bg-primary); border-radius: 4px; font-size: 11px; overflow-x: auto; color: var(--accent-red);">{{ draft.linkedin_response }}</pre>
+                    </details>
+                {% elif draft.status == 'POSTED' %}
+                    <span class="text-green" style="font-size: 12px;">✓ Posted to LinkedIn{% if draft.image_url %} (with image){% endif %}</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+{% endif %}
+
+<div style="margin-top: 30px;">
+    <a href="/" class="btn">← Back to Home</a>
+</div>
+
+<style>
+.draft-image-preview {
+    margin: 15px 0;
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+}
+
+.draft-image-preview img {
+    width: 100%;
+    max-height: 200px;
+    object-fit: cover;
+    display: block;
+}
+
+.image-attribution {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 8px 12px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.8));
+    color: #ccc;
+    font-size: 11px;
+}
+
+.image-badge {
+    margin-left: 8px;
+    font-size: 14px;
+}
+</style>
+
+{% endblock %}

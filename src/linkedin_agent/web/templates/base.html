@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}LinkedIn Post Agent{% endblock %}</title>
+    <link rel="icon" type="image/svg+xml" href="/static/Postagent_fevicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/Postagent_fevicon.svg">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #111111;
+            --bg-tertiary: #1a1a1a;
+            --text-primary: #e0e0e0;
+            --text-secondary: #888888;
+            --text-muted: #555555;
+            --accent-cyan: #00d4ff;
+            --accent-orange: #ff9500;
+            --accent-green: #00ff88;
+            --accent-red: #ff4444;
+            --accent-yellow: #ffcc00;
+            --border-color: #2a2a2a;
+        }
+        
+        body {
+            font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            min-height: 100vh;
+        }
+        
+        .layout { display: flex; min-height: 100vh; }
+        
+        .sidebar {
+            width: 220px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            padding: 20px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        
+        .logo { padding: 0 20px 20px; border-bottom: 1px solid var(--border-color); margin-bottom: 20px; }
+        .logo a { color: var(--accent-cyan); text-decoration: none; font-size: 16px; font-weight: 600; }
+        .logo span { color: var(--text-muted); }
+        
+        .nav-section { padding: 0 20px; margin-bottom: 25px; }
+        .nav-section-title { color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+        .nav-link { display: block; color: var(--text-secondary); text-decoration: none; padding: 8px 0; transition: color 0.2s; }
+        .nav-link:hover { color: var(--text-primary); }
+        .nav-link.active { color: var(--accent-cyan); }
+        
+        .sidebar-footer { position: absolute; bottom: 0; left: 0; right: 0; padding: 15px 20px; border-top: 1px solid var(--border-color); font-size: 11px; color: var(--text-muted); }
+        
+        .main-content { flex: 1; margin-left: 220px; padding: 30px 40px; }
+        .main-content-full { margin-left: 0; }
+        
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color); }
+        .page-title { font-size: 18px; font-weight: 600; color: var(--text-primary); }
+        .page-title span { color: var(--accent-orange); }
+        
+        .btn { display: inline-block; padding: 8px 16px; font-family: inherit; font-size: 13px; font-weight: 500; text-decoration: none; border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer; transition: all 0.2s; background: transparent; color: var(--text-primary); }
+        .btn:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); }
+        .btn-primary { background: var(--accent-cyan); border-color: var(--accent-cyan); color: var(--bg-primary); }
+        .btn-primary:hover { background: transparent; color: var(--accent-cyan); }
+        .btn-success { background: var(--accent-green); border-color: var(--accent-green); color: var(--bg-primary); }
+        .btn-success:hover { background: transparent; color: var(--accent-green); }
+        .btn-warning { background: var(--accent-orange); border-color: var(--accent-orange); color: var(--bg-primary); }
+        .btn-warning:hover { background: transparent; color: var(--accent-orange); }
+        .btn-danger { background: var(--accent-red); border-color: var(--accent-red); color: var(--bg-primary); }
+        .btn-danger:hover { background: transparent; color: var(--accent-red); }
+        .btn-sm { padding: 4px 10px; font-size: 12px; }
+        .btn-secondary { background: var(--bg-tertiary); }
+        
+        .card { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 4px; margin-bottom: 20px; }
+        .card-header { padding: 15px 20px; border-bottom: 1px solid var(--border-color); font-weight: 600; }
+        .card-body { padding: 20px; }
+        
+        .table { width: 100%; border-collapse: collapse; }
+        .table th, .table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        .table th { color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+        .table td { color: var(--text-secondary); }
+        .table tr:hover td { background: var(--bg-tertiary); }
+        
+        .status { display: inline-block; padding: 3px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .status-ok, .status-success { background: rgba(0, 255, 136, 0.15); color: var(--accent-green); border: 1px solid rgba(0, 255, 136, 0.3); }
+        .status-error, .status-failed { background: rgba(255, 68, 68, 0.15); color: var(--accent-red); border: 1px solid rgba(255, 68, 68, 0.3); }
+        .status-warning, .status-pending { background: rgba(255, 204, 0, 0.15); color: var(--accent-yellow); border: 1px solid rgba(255, 204, 0, 0.3); }
+        .status-info { background: rgba(0, 212, 255, 0.15); color: var(--accent-cyan); border: 1px solid rgba(0, 212, 255, 0.3); }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 4px; padding: 20px; text-align: center; }
+        .stat-value { font-size: 32px; font-weight: 700; margin-bottom: 5px; }
+        .stat-value.pending { color: var(--accent-yellow); }
+        .stat-value.posted { color: var(--accent-green); }
+        .stat-value.failed { color: var(--accent-red); }
+        .stat-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-label { display: block; margin-bottom: 5px; color: var(--text-secondary); font-size: 12px; }
+        .form-input { width: 100%; padding: 10px 12px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-primary); font-family: inherit; font-size: 13px; }
+        .form-input:focus { outline: none; border-color: var(--accent-cyan); }
+        .form-input::placeholder { color: var(--text-muted); }
+        .form-row { display: flex; gap: 10px; align-items: flex-end; }
+        .form-row .form-input { flex: 1; }
+        
+        .alert { padding: 12px 15px; border-radius: 4px; margin-bottom: 20px; font-size: 13px; }
+        .alert-success { background: rgba(0, 255, 136, 0.1); border: 1px solid rgba(0, 255, 136, 0.3); color: var(--accent-green); }
+        .alert-error { background: rgba(255, 68, 68, 0.1); border: 1px solid rgba(255, 68, 68, 0.3); color: var(--accent-red); }
+        .alert-info { background: rgba(0, 212, 255, 0.1); border: 1px solid rgba(0, 212, 255, 0.3); color: var(--accent-cyan); }
+        .alert-warning { background: rgba(255, 204, 0, 0.1); border: 1px solid rgba(255, 204, 0, 0.3); color: var(--accent-yellow); }
+        
+        code { background: var(--bg-tertiary); padding: 2px 6px; border-radius: 3px; font-size: 12px; color: var(--accent-orange); }
+        
+        .feed-list { list-style: none; }
+        .feed-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 4px; margin-bottom: 8px; font-size: 12px; }
+        .feed-item:hover { border-color: var(--text-muted); }
+        .feed-url { color: var(--text-secondary); word-break: break-all; flex: 1; }
+        .btn-remove { background: transparent; border: none; color: var(--accent-red); cursor: pointer; padding: 4px 8px; font-size: 14px; opacity: 0.6; }
+        .btn-remove:hover { opacity: 1; }
+        
+        .draft-card { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 4px; margin-bottom: 15px; overflow: hidden; }
+        .draft-header { display: flex; justify-content: space-between; align-items: flex-start; padding: 15px 20px; border-bottom: 1px solid var(--border-color); }
+        .draft-title { font-weight: 600; color: var(--text-primary); margin-bottom: 5px; }
+        .draft-meta { font-size: 12px; color: var(--text-muted); }
+        .draft-meta a { color: var(--accent-cyan); text-decoration: none; }
+        .draft-meta a:hover { text-decoration: underline; }
+        .draft-content { padding: 20px; color: var(--text-secondary); white-space: pre-wrap; font-size: 13px; line-height: 1.7; background: var(--bg-primary); }
+        .draft-actions { padding: 15px 20px; display: flex; gap: 10px; border-top: 1px solid var(--border-color); }
+        
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .section-title { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+        
+        .text-muted { color: var(--text-muted); }
+        .text-cyan { color: var(--accent-cyan); }
+        .text-orange { color: var(--accent-orange); }
+        .text-green { color: var(--accent-green); }
+        .text-red { color: var(--accent-red); }
+        .text-yellow { color: var(--accent-yellow); }
+        .mb-20 { margin-bottom: 20px; }
+        .mb-30 { margin-bottom: 30px; }
+        
+        .info-box { background: var(--bg-secondary); border: 1px solid var(--border-color); border-left: 3px solid var(--accent-cyan); padding: 15px 20px; border-radius: 0 4px 4px 0; margin-bottom: 20px; }
+        .info-box-title { font-weight: 600; margin-bottom: 10px; }
+        .info-box ol, .info-box ul { margin-left: 20px; color: var(--text-secondary); }
+        .info-box li { margin-bottom: 5px; }
+        
+        /* Profile card styles */
+        .profile-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            margin-top: 8px;
+        }
+        .profile-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-green));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        .profile-info { flex: 1; }
+        .profile-status {
+            font-size: 12px;
+            color: var(--accent-green);
+            font-weight: 600;
+        }
+        .profile-urn {
+            font-size: 10px;
+            color: var(--text-muted);
+            word-break: break-all;
+        }
+        .btn-logout {
+            width: 100%;
+            padding: 8px 12px;
+            background: transparent;
+            border: 1px solid var(--accent-red);
+            border-radius: 4px;
+            color: var(--accent-red);
+            font-family: inherit;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-logout:hover {
+            background: var(--accent-red);
+            color: var(--bg-primary);
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar { width: 100%; height: auto; position: relative; }
+            .main-content { margin-left: 0; padding: 20px; }
+            .layout { flex-direction: column; }
+            .form-row { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        {% if token_valid %}
+        <aside class="sidebar">
+            <div class="logo">
+                <a href="/">post<span>agent</span></a> ~/linkedin
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-section-title">> Navigation</div>
+                <a href="/" class="nav-link {% if request.url.path == '/' %}active{% endif %}">Home</a>
+                <a href="/drafts" class="nav-link {% if request.url.path == '/drafts' and not request.query_params.get('status') %}active{% endif %}">All Drafts</a>
+                <a href="/drafts?status=PENDING" class="nav-link {% if request.query_params.get('status') == 'PENDING' %}active{% endif %}">Pending</a>
+                <a href="/drafts?status=POSTED" class="nav-link {% if request.query_params.get('status') == 'POSTED' %}active{% endif %}">Posted</a>
+                <a href="/drafts?status=FAILED" class="nav-link {% if request.query_params.get('status') == 'FAILED' %}active{% endif %}">Failed</a>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-section-title">> Account</div>
+                <div class="profile-card">
+                    <div class="profile-icon">👤</div>
+                    <div class="profile-info">
+                        <div class="profile-status">Connected</div>
+                        <div class="profile-urn">{{ token.person_urn[:20] if token and token.person_urn else 'LinkedIn' }}...</div>
+                    </div>
+                </div>
+                <form method="post" action="/logout" style="margin-top: 10px;">
+                    <button type="submit" class="btn-logout">Logout</button>
+                </form>
+            </div>
+            
+            <div class="sidebar-footer">
+                <div>v1.0.0 · Made with ☕ + ❤️</div>
+                <div style="margin-top: 5px;">© 2026 10abdulmoid</div>
+            </div>
+        </aside>
+        {% endif %}
+        
+        <main class="main-content {% if not token_valid %}main-content-full{% endif %}">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</body>
+</html>

@@ -1,0 +1,501 @@
+{% extends "base.html" %}
+
+{% block title %}Home - LinkedIn Post Agent{% endblock %}
+
+{% block content %}
+{% if not token_valid %}
+<!-- Welcome Page for Logged Out Users -->
+<div class="welcome-container">
+    <div class="welcome-logo">
+        <span class="logo-main">post</span><span class="logo-accent">agent</span>
+    </div>
+    <h1 class="welcome-title">Welcome to PostAgent</h1>
+    <p class="welcome-description">
+        Your AI-powered LinkedIn content automation tool. PostAgent collects articles from RSS feeds, 
+        generates engaging post drafts using AI, and lets you review and approve before publishing 
+        to your LinkedIn profile.
+    </p>
+    <div class="welcome-features">
+        <div class="feature-item">
+            <span class="feature-icon">📡</span>
+            <span>Auto-poll RSS feeds for fresh content</span>
+        </div>
+        <div class="feature-item">
+            <span class="feature-icon">🤖</span>
+            <span>AI-powered draft generation with Ollama</span>
+        </div>
+        <div class="feature-item">
+            <span class="feature-icon">✅</span>
+            <span>Human-in-the-loop approval workflow</span>
+        </div>
+    </div>
+    <a href="/login" class="btn-login-large">
+        <svg class="linkedin-icon" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+        </svg>
+        Login with LinkedIn
+    </a>
+</div>
+
+<style>
+.welcome-container {
+    max-width: 600px;
+    margin: 80px auto;
+    text-align: center;
+    padding: 50px 40px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+}
+
+.welcome-logo {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.logo-main {
+    color: var(--accent-cyan);
+}
+
+.logo-accent {
+    color: var(--text-muted);
+}
+
+.welcome-title {
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 20px;
+}
+
+.welcome-description {
+    color: var(--text-secondary);
+    font-size: 15px;
+    line-height: 1.8;
+    margin-bottom: 35px;
+}
+
+.welcome-features {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 40px;
+    text-align: left;
+    max-width: 380px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.feature-icon {
+    font-size: 18px;
+}
+
+.btn-login-large {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 32px;
+    background: linear-gradient(135deg, #0077B5, #00a0dc);
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 119, 181, 0.3);
+}
+
+.btn-login-large:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 119, 181, 0.4);
+}
+
+.linkedin-icon {
+    opacity: 0.9;
+}
+</style>
+
+{% else %}
+<!-- Dashboard for Logged In Users -->
+<div class="page-header">
+    <h1 class="page-title">> <span>Overview</span></h1>
+</div>
+
+{% if article_success %}
+<div class="alert alert-success">✓ {{ article_success }}</div>
+{% endif %}
+{% if article_error %}
+<div class="alert alert-error">✗ {{ article_error }}</div>
+{% endif %}
+{% if feed_success %}
+<div class="alert alert-success">✓ {{ feed_success }}</div>
+{% endif %}
+{% if feed_error %}
+<div class="alert alert-error">✗ {{ feed_error }}</div>
+{% endif %}
+
+<!-- Stats Grid -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value pending">{{ pending_count }}</div>
+        <div class="stat-label">Pending</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value posted">{{ posted_count }}</div>
+        <div class="stat-label">Posted</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value failed">{{ failed_count }}</div>
+        <div class="stat-label">Failed</div>
+    </div>
+</div>
+
+<!-- System Status -->
+<div class="card mb-30">
+    <div class="card-header">> System Status</div>
+    <div class="card-body" style="padding: 0;">
+        <table class="table">
+            <tr>
+                <td style="width: 200px;">Configuration</td>
+                <td>
+                    {% if config_ok %}
+                        <span class="status status-ok">✓ OK</span>
+                    {% else %}
+                        <span class="status status-error">✗ MISSING</span>
+                        <span class="text-muted" style="margin-left: 10px; font-size: 12px;">Check .env file</span>
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td>LinkedIn OAuth</td>
+                <td>
+                    {% if token_valid %}
+                        <span class="status status-ok">✓ AUTHENTICATED</span>
+                        {% if token and token.person_urn %}
+                            <code style="margin-left: 10px;">{{ token.person_urn }}</code>
+                        {% endif %}
+                    {% else %}
+                        <span class="status status-error">✗ NOT AUTHENTICATED</span>
+                        <a href="/login" class="btn btn-sm btn-primary" style="margin-left: 10px;">Login</a>
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td>Database</td>
+                <td>
+                    <span class="status status-ok">✓ CONNECTED</span>
+                    <code style="margin-left: 10px;">{{ db_path }}</code>
+                </td>
+            </tr>
+            <tr>
+                <td>RSS Feeds</td>
+                <td>
+                    {% if feeds %}
+                        <span class="status status-info">{{ feeds|length }} feed(s)</span>
+                    {% else %}
+                        <span class="status status-warning">No feeds</span>
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td>Poll Interval</td>
+                <td class="text-muted">{{ poll_seconds }}s ({{ (poll_seconds / 60)|int }} minutes)</td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="card mb-30">
+    <div class="card-header">> Quick Actions</div>
+    <div class="card-body">
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+            {% if not token_valid %}
+                <a href="/login" class="btn btn-primary">Login with LinkedIn</a>
+            {% endif %}
+            
+            {% if feeds %}
+                <form method="post" action="/poll" style="display: inline-flex; align-items: center; gap: 10px;">
+                    <button type="submit" class="btn btn-primary" title="Fetch new articles from RSS feeds and generate AI drafts">
+                        🔄 Generate New Drafts
+                    </button>
+                    <label class="image-toggle" title="Include Unsplash images with drafts">
+                        <input type="checkbox" name="include_images" value="true">
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-label">📷 Images</span>
+                    </label>
+                </form>
+            {% endif %}
+            
+            {% if pending_count > 0 %}
+                <a href="/drafts?status=PENDING" class="btn btn-success">Review Drafts ({{ pending_count }})</a>
+                <form method="post" action="/clear-pending" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete all {{ pending_count }} pending drafts? This cannot be undone.');">
+                    <button type="submit" class="btn btn-danger" title="Delete all pending drafts">
+                        🗑️ Clear Pending ({{ pending_count }})
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+        
+        {% if not feeds %}
+        <p class="text-muted" style="margin-top: 15px; font-size: 12px;">Add RSS feeds below to enable draft generation.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Add Article -->
+<div class="card mb-30">
+    <div class="card-header">> Add Article Link</div>
+    <div class="card-body">
+        <p class="text-muted mb-20" style="font-size: 12px;">Paste any article URL and AI will generate a LinkedIn post draft.</p>
+        <form method="post" action="/add-article" id="article-form">
+            <div class="form-row">
+                <input type="url" name="article_url" class="form-input" placeholder="https://example.com/article" required>
+                <input type="text" name="article_title" class="form-input" placeholder="Title (optional)" style="max-width: 250px;">
+                <label class="image-toggle" title="Include an Unsplash image with this draft">
+                    <input type="checkbox" name="include_image" value="true" id="include-image-checkbox">
+                    <span class="toggle-slider"></span>
+                    <span class="toggle-label">📷</span>
+                </label>
+                <button type="submit" class="btn btn-primary" id="generate-btn">Generate Draft</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Image Toggle Styles -->
+<style>
+.image-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.image-toggle input[type="checkbox"] {
+    display: none;
+}
+
+.toggle-slider {
+    width: 36px;
+    height: 20px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.toggle-slider::after {
+    content: "";
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    background: var(--text-muted);
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    transition: all 0.3s ease;
+}
+
+.image-toggle input[type="checkbox"]:checked + .toggle-slider {
+    background: var(--accent-green);
+    border-color: var(--accent-green);
+}
+
+.image-toggle input[type="checkbox"]:checked + .toggle-slider::after {
+    left: 18px;
+    background: white;
+}
+
+.toggle-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    transition: color 0.3s;
+}
+
+.image-toggle input[type="checkbox"]:checked ~ .toggle-label {
+    color: var(--accent-green);
+}
+</style>
+
+<!-- Toast Popup -->
+<div id="toast" class="toast">
+    <span class="toast-icon">✓</span>
+    <span class="toast-message">Draft saved in "All Drafts"</span>
+    <a href="/drafts" class="toast-link">View →</a>
+</div>
+
+<style>
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #1a3a2a 0%, #0d1f17 100%);
+    border: 1px solid #00ff88;
+    border-radius: 8px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 4px 20px rgba(0, 255, 136, 0.2);
+    transform: translateX(400px);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    z-index: 9999;
+}
+.toast.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+.toast-icon {
+    color: #00ff88;
+    font-size: 20px;
+    font-weight: bold;
+}
+.toast-message {
+    color: #e0e0e0;
+    font-size: 14px;
+}
+.toast-link {
+    color: #00d4ff;
+    text-decoration: none;
+    font-size: 13px;
+    margin-left: 8px;
+    transition: color 0.2s;
+}
+.toast-link:hover {
+    color: #00ff88;
+}
+
+/* Loading state for button */
+.btn.loading {
+    position: relative;
+    color: transparent !important;
+    pointer-events: none;
+}
+.btn.loading::after {
+    content: "";
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    top: 50%;
+    left: 50%;
+    margin-left: -8px;
+    margin-top: -8px;
+    border: 2px solid transparent;
+    border-top-color: #0a0a0a;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+</style>
+
+<script>
+document.getElementById('article-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const form = this;
+    const btn = document.getElementById('generate-btn');
+    const originalText = btn.textContent;
+    
+    // Show loading state
+    btn.classList.add('loading');
+    btn.textContent = 'Generating...';
+    
+    // Submit form via fetch
+    fetch(form.action, {
+        method: 'POST',
+        body: new FormData(form)
+    }).then(response => {
+        // Reset button
+        btn.classList.remove('loading');
+        btn.textContent = originalText;
+        
+        if (response.ok || response.redirected) {
+            // Show success toast
+            const toast = document.getElementById('toast');
+            toast.classList.add('show');
+            
+            // Clear form
+            form.reset();
+            
+            // Hide toast after 4 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 4000);
+        } else {
+            alert('Failed to generate draft. Please try again.');
+        }
+    }).catch(err => {
+        btn.classList.remove('loading');
+        btn.textContent = originalText;
+        alert('Error: ' + err.message);
+    });
+});
+</script>
+
+<!-- Manage Feeds -->
+<div class="card mb-30">
+    <div class="card-header">> RSS Feeds</div>
+    <div class="card-body">
+        <p class="text-muted mb-20" style="font-size: 12px;">Add RSS/Atom feeds to automatically poll for new articles.</p>
+        <form method="post" action="/add-feed" style="margin-bottom: 20px;">
+            <div class="form-row">
+                <input type="url" name="feed_url" class="form-input" placeholder="https://example.com/feed.xml" required>
+                <button type="submit" class="btn btn-warning">Add Feed</button>
+            </div>
+        </form>
+        
+        {% if feeds %}
+        <ul class="feed-list">
+            {% for feed in feeds %}
+            <li class="feed-item">
+                <span class="feed-url">{{ feed }}</span>
+                <form method="post" action="/remove-feed" style="display: inline;">
+                    <input type="hidden" name="feed_url" value="{{ feed }}">
+                    <button type="submit" class="btn-remove">✕</button>
+                </form>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-muted">No feeds configured yet.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Getting Started -->
+<div class="info-box">
+    <div class="info-box-title">💡 Getting Started</div>
+    <ol>
+        <li>Configure LinkedIn OAuth credentials in <code>.env</code></li>
+        <li>Click "Login with LinkedIn" to authenticate</li>
+        <li>Add RSS feeds or paste article links</li>
+        <li>Click "Poll Feeds Now" to generate AI drafts</li>
+        <li>Review drafts and click "Approve" to post</li>
+    </ol>
+</div>
+
+{% endif %}
+{% endblock %}
