@@ -28,6 +28,10 @@ class Settings(BaseSettings):
     ollama_model: str = "llama3.2"
     ai_enabled: bool = True
 
+    # Groq AI Configuration
+    groq_api_key: str = ""
+    groq_model: str = "llama-3.3-70b-versatile"
+
     # Unsplash API Configuration
     unsplash_access_key: str = ""  # Get from https://unsplash.com/developers
 

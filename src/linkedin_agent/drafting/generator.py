@@ -5,6 +5,7 @@ import random
 
 from ..models import Article
 from ..ai.ollama_agent import get_ollama_agent
+from ..ai.groq_agent import get_groq_agent
 from .rules import DEFAULT_HASHTAGS, MAX_POST_LENGTH, truncate_text, validate_post_text
 
 logger = logging.getLogger(__name__)
@@ -22,8 +23,8 @@ def generate_post_draft(article: Article) -> str:
     Returns:
         Post text
     """
-    # Try AI-powered generation first
-    ai_post = _generate_with_ai(article)
+    # Try Groq first, then Ollama, then rule-based fallback
+    ai_post = _generate_with_groq(article) or _generate_with_ai(article)
     if ai_post:
         # Validate AI-generated post
         is_valid, error = validate_post_text(ai_post)
@@ -36,6 +37,23 @@ def generate_post_draft(article: Article) -> str:
     # Fallback to rule-based generation
     logger.info("Using rule-based post generation")
     return _generate_rule_based(article)
+
+
+def _generate_with_groq(article: Article) -> str | None:
+    """Generate post using Groq AI."""
+    try:
+        agent = get_groq_agent()
+        if not agent.is_available():
+            logger.info("Groq not configured, skipping")
+            return None
+        return agent.generate_linkedin_post(
+            title=article.title,
+            url=article.url,
+            summary=article.summary,
+        )
+    except Exception as e:
+        logger.error(f"Groq generation error: {e}")
+        return None
 
 
 def _generate_with_ai(article: Article) -> str | None:
